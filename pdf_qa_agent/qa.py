@@ -6,6 +6,49 @@ Responsibilities:
   from the vector store (retrieval)
 - Pass those chunks as context to a Groq-hosted LLM
 - Return the answer and the source page numbers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  You: "What is supervised learning?"
+        │
+        ▼ same HuggingFace model converts question → vector
+        │
+  [0.10, 0.80, 0.34, ... 384 numbers]
+        │
+        ▼ FAISS compares against all stored chunk vectors
+        │
+  Top 3 most similar chunks:
+    chunk 2: "supervised learning uses labeled data..."   similarity: 0.95 ✅
+    chunk 5: "classification and regression are..."       similarity: 0.91 ✅
+    chunk 3: "training a model on examples..."           similarity: 0.87 ✅
+        │
+        ▼ RetrievalQA builds this prompt automatically:
+        │
+  ┌──────────────────────────────────────────────────┐
+  │ Use the following context to answer the question │
+  │                                                  │
+  │ Context:                                         │
+  │   "supervised learning uses labeled data..."     │
+  │   "classification and regression are..."         │
+  │   "training a model on examples..."              │
+  │                                                  │
+  │ Question: What is supervised learning?           │
+  └──────────────────────────────────────────────────┘
+        │
+        ▼ sent to Groq (needs GROQ_API_KEY in .env)
+        │
+  llama-3.1-8b-instant reads context + question
+        │
+        ▼
+  Answer: "The pension balance is ..."
+  Source pages: [0, 1]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NOTE: Both the question and chunks MUST use the same embedding
+model so their vectors are in the same mathematical space.
+If different models were used, similarity search would be meaningless.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
 from langchain.chains import RetrievalQA

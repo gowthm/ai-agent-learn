@@ -6,6 +6,48 @@ Responsibilities:
 - Store those vectors in a FAISS index for fast similarity search
 - Save the index to disk so it is built only once
 - Reload the index on subsequent runs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT IS AN EMBEDDING?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The embedding model converts text into a list of 384 numbers
+that capture the *meaning* of the text. Similar meaning = similar
+numbers, so we can search by meaning rather than exact keywords:
+
+  "employee contribution"  → [0.12, 0.85, 0.33, ...]  384 numbers
+  "worker deposit"         → [0.11, 0.83, 0.35, ...]  ← close! (similar meaning)
+  "cricket score"          → [0.91, 0.02, 0.77, ...]  ← far away (different meaning)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY HUGGINGFACE? (no API key needed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  HuggingFace (used here)     vs     OpenAI Embeddings
+  ────────────────────────           ─────────────────
+  No API key required                Needs OPENAI_API_KEY
+  Free forever                       Paid per request
+  Runs on your CPU locally           Sent to OpenAI servers
+  Data never leaves your machine     Data sent externally
+
+  The model (all-MiniLM-L6-v2, ~87MB) is downloaded once to:
+    C:\\Users\\<you>\\.cache\\huggingface\\hub\\
+  After that it runs fully offline — no internet, no cost.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT IS FAISS?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FAISS is a vector index — the core concept behind vector databases.
+It stores all chunk vectors and can find the most similar ones to
+a query vector in milliseconds, even with thousands of chunks.
+
+  FAISS (used here)              Full Vector DB (Pinecone, Chroma)
+  ─────────────────              ─────────────────────────────────
+  Local files on disk            Dedicated server / cloud
+  Zero setup                     Needs a running server
+  Good for small-medium data     Scales to millions of vectors
+
+  Files saved to disk:
+    faiss_index/index.faiss  ← vectors (binary, not human-readable)
+    faiss_index/index.pkl    ← original chunk texts + page metadata
 """
 
 from langchain_community.vectorstores import FAISS
